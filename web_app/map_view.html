@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Global Donor Map | E-Blood</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <style>
+        /* Pulse Animation for Hospital */
+        .hospital-pulse {
+            width: 15px; height: 15px;
+            background: #ff4d6d; border-radius: 50%; border: 2px solid white;
+            box-shadow: 0 0 0 rgba(255, 77, 109, 0.4);
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(255, 77, 109, 0.7); }
+            70% { box-shadow: 0 0 0 20px rgba(255, 77, 109, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(255, 77, 109, 0); }
+        }
+        /* Map Container Styling */
+        #big-map { 
+            height: 550px; 
+            width: 100%;
+            border-radius: 24px; 
+            border: 1px solid rgba(255,255,255,0.1); 
+            margin-top: 20px; 
+            z-index: 1;
+        }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <div class="logo-container">
+    <span class="blood-drop">🩸</span>
+    <div class="logo-thread-wrap">
+        <span class="text-red">Red</span><span class="text-thread">thread</span>
+    </div>
+</div>
+        <div class="nav-item" onclick="window.location.href='index.html'">Dashboard</div>
+        <div class="nav-item active">Donor Map</div>
+        <div class="nav-item" onclick="window.location.href='storage_logs.html'">Storage Logs</div>
+    </div>
+
+    <div class="main-content">
+        <header>
+            <h1>Global Donor Visualization <span class="sub-header">Live GPS Feed</span></h1>
+        </header>
+        
+        <div id="big-map"></div>
+    </div>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+    // 1. Hospital Center (Saveetha)
+    const hospitalLat = 13.0271; 
+    const hospitalLon = 80.0173;
+    const hospitalLatLng = L.latLng(hospitalLat, hospitalLon);
+
+    // Initialize Map
+    var map = L.map('big-map').setView([hospitalLat, hospitalLon], 14);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+
+    // 2. Hospital Marker
+    var hospitalIcon = L.divIcon({ 
+        className: 'hospital-pulse', 
+        iconSize: [15, 15], 
+        iconAnchor: [7, 7] 
+    });
+
+    L.marker([hospitalLat, hospitalLon], {icon: hospitalIcon}).addTo(map)
+        .bindPopup("<b>Saveetha Emergency Command Center</b>")
+        .openPopup();
+
+    // 3. 5km Radius
+    L.circle([hospitalLat, hospitalLon], { 
+        color: '#ff4d6d', 
+        fillOpacity: 0.1, 
+        radius: 5000 
+    }).addTo(map);
+
+    // 4. Named Donor Data
+    const donors = [
+        { name: "Arun Kumar", type: "O+", offset: [0.003, 0.005] },
+        { name: "Priya Sharma", type: "A-", offset: [-0.008, 0.010] },
+        { name: "Rahul Verma", type: "B+", offset: [0.005, -0.009] },
+        { name: "Sanjay Raj", type: "O-", offset: [-0.012, -0.004] },
+        { name: "Meera Nair", type: "AB+", offset: [0.009, 0.001] },
+        { name: "Vikram Singh", type: "O+", offset: [-0.001, 0.015] },
+        { name: "Ananya Das", type: "A+", offset: [0.015, -0.012] },
+        { name: "Karthik R", type: "B-", offset: [-0.019, -0.018] },
+        { name: "Sneha Kapoor", type: "O-", offset: [0.022, 0.008] },
+        { name: "Manoj Kumar", type: "A-", offset: [-0.025, 0.025] }
+    ];
+
+    // 5. Add Markers with Dynamic Distance Calculation
+    donors.forEach(d => {
+        const dLat = hospitalLat + d.offset[0];
+        const dLon = hospitalLon + d.offset[1];
+        const donorLatLng = L.latLng(dLat, dLon);
+        
+        // Calculate distance in meters, then convert to KM
+        const distanceInMeters = hospitalLatLng.distanceTo(donorLatLng);
+        const distanceInKm = (distanceInMeters / 1000).toFixed(2);
+        
+        L.marker([dLat, dLon]).addTo(map)
+            .bindPopup(`
+                <div style="font-family: 'Plus Jakarta Sans', sans-serif;">
+                    <b style="color: #0f172a;">${d.name}</b><br>
+                    <span style="color: #64748b;">Blood Type: ${d.type}</span><br>
+                    <b style="color: #ff4d6d;">Status: Available</b><br>
+                    <hr style="border: 0; border-top: 1px solid #eee; margin: 5px 0;">
+                    <span style="font-weight: 700;">📍 Distance: ${distanceInKm} km</span>
+                </div>
+            `);
+    });
+</script>
+</body>
+</html>

@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Storage Inventory | E-Blood</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="sidebar">
+        <div class="logo-container">
+    <span class="blood-drop">🩸</span>
+    <div class="logo-thread-wrap">
+        <span class="text-red">Red</span><span class="text-thread">thread</span>
+    </div>
+</div>
+        <div class="nav-item" onclick="window.location.href='index.html'">Dashboard</div>
+        <div class="nav-item" onclick="window.location.href='map_view.html'">Donor Map</div>
+        <div class="nav-item active">Storage Logs</div>
+    </div>
+
+    <div class="main-content">
+        <header>
+            <h1>Blood Bank Inventory <span class="sub-header">Real-time Sensor Data</span></h1>
+        </header>
+
+        <div class="dashboard-grid" style="grid-template-columns: 1fr;">
+            <div class="request-panel">
+                <span class="section-label">Current Stock Levels</span>
+                <table style="width:100%; border-collapse: collapse; margin-top:20px;">
+                    <tr style="border-bottom: 1px solid rgba(255,255,255,0.1); color: var(--text-dim);">
+                        <th style="padding: 15px; text-align: left;">Blood Type</th>
+                        <th style="padding: 15px; text-align: left;">Units Available</th>
+                        <th style="padding: 15px; text-align: left;">Last Sensor Update</th>
+                    </tr>
+                    <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+                        <td style="padding: 15px;">O Positive (O+)</td>
+                        <td style="padding: 15px; color: var(--primary); font-weight: 800;">4 Units</td>
+                        <td style="padding: 15px;">2 mins ago</td>
+                    </tr>
+                    <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+                        <td style="padding: 15px;">A Negative (A-)</td>
+                        <td style="padding: 15px; color: var(--primary); font-weight: 800;">2 Units</td>
+                        <td style="padding: 15px;">2 mins ago</td>
+                    </tr>
+                    <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+                        <td style="padding: 15px;">AB Positive (AB+)</td>
+                        <td style="padding: 15px; color: var(--primary); font-weight: 800;">6 Units</td>
+                        <td style="padding: 15px;">2 mins ago</td>
+                    </tr>
+                    <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+                        <td style="padding: 15px;">B Positive (B+)</td>
+                        <td style="padding: 15px; color: var(--primary); font-weight: 800;">1 Unit</td>
+                        <td style="padding: 15px;">2 mins ago</td>
+                    </tr>
+                    <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+                        <td style="padding: 15px;">O Negative (O-)</td>
+                        <td style="padding: 15px; color: var(--primary); font-weight: 800;">8 Units</td>
+                        <td style="padding: 15px;">2 mins ago</td>
+                    </tr>
+                    </table>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

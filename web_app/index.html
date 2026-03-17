@@ -8,18 +8,21 @@
 </head>
 <body>
     <div class="sidebar">
-        <div class="logo">🩸 E-Blood</div>
-        <nav>
-            <div class="nav-item active">Dashboard</div>
-            <div class="nav-item">Donor Map</div>
-            <div class="nav-item">Storage Logs</div>
-        </nav>
+        <div class="logo-container">
+    <span class="blood-drop">🩸</span>
+    <div class="logo-thread-wrap">
+        <span class="text-red">Red</span><span class="text-thread">thread</span>
+    </div>
+</div>
+        <div class="nav-item active" onclick="window.location.href='index.html'">Dashboard</div>
+        <div class="nav-item" onclick="window.location.href='map_view.html'">Donor Map</div>
+        <div class="nav-item" onclick="window.location.href='storage_logs.html'">Storage Logs</div>
     </div>
 
     <div class="main-content">
         <header>
             <h1>Emergency Response Portal <span class="sub-header">System Active</span></h1>
-            <div class="status-badge">🟢 BACKEND LINKED</div>
+            <div class="status-badge" id="system-status">🟢 BACKEND LINKED</div>
         </header>
 
         <div class="dashboard-grid">
@@ -37,9 +40,18 @@
                             <option value="O-">O Negative (O-)</option>
                             <option value="A-">A Negative (A-)</option>
                             <option value="B-">B Negative (B-)</option>
-                            <option value="A-">AB Negative (AB-)</option>
+                            <option value="AB-">AB Negative (AB-)</option>
                         </select>
-                        <button class="sos-btn-large" onclick="triggerEmergency()">ACTIVATE SOS</button>
+                        
+                        <button class="sos-btn-large" onclick="handleEmergencyActivation()">ACTIVATE SOS</button>
+                        
+                        <div id="status-terminal" style="display: none; background: #070b14; border: 1px solid #1e293b; border-radius: 16px; padding: 20px; margin-top: 25px; font-family: 'Courier New', monospace; box-shadow: inset 0 0 10px rgba(0,0,0,0.5); text-align: left;">
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 15px; border-bottom: 1px solid #1e293b; padding-bottom: 10px;">
+                                <span style="color: #ff4d6d; font-size: 0.8rem; font-weight: bold; letter-spacing: 1px;">SYSTEM TRANSMISSION LOG</span>
+                                <span style="color: #4ade80; font-size: 0.8rem;">● ENCRYPTED</span>
+                            </div>
+                            <div id="log-output" style="font-size: 0.85rem; line-height: 1.6;"></div>
+                        </div>
                     </div>
                 </section>
             </div>
@@ -71,100 +83,105 @@
     </div>
 
     <script>
- // Function to trigger the SOS process
-async function triggerEmergency() {
-    const bloodGroup = document.getElementById('bloodGroup').value;
-    const resultsDiv = document.getElementById('results');
-    
-    // 1. Reset UI and show loading state
-    resultsDiv.innerHTML = "<div class='loader'>Scanning for donors within 5km...</div>";
+        // MASTER FUNCTION: Combines Simulation Logs + Real Backend Fetch
+        async function handleEmergencyActivation() {
+            const bloodGroup = document.getElementById('bloodGroup').value;
+            const terminal = document.getElementById('status-terminal');
+            const logOutput = document.getElementById('log-output');
+            const resultsDiv = document.getElementById('results');
 
-    try {
-        // 2. Fetch from Backend (Ensure this IP matches your Flask Terminal)
-        const response = await fetch('http://127.0.0.1:5000/request-blood', {
-            method: 'POST',
-            mode: 'cors', // Explicitly handle CORS
-            headers: { 
-                'Content-Type': 'application/json' 
-            },
-            body: JSON.stringify({ 
-                lat: 13.0280, 
-                lon: 80.0440, 
-                blood_group: bloodGroup 
-            })
-        });
+            // 1. Setup UI
+            terminal.style.display = 'block';
+            logOutput.innerHTML = "";
+            resultsDiv.innerHTML = "<div class='loader' style='color:#ff4d6d; padding:20px;'>Initializing Global Donor Scan...</div>";
 
-        if (!response.ok) throw new Error('Network response was not ok');
+            const log = (msg, col = "#94a3b8") => {
+                const time = new Date().toLocaleTimeString([], { hour12: false });
+                logOutput.innerHTML += `<div style="color: ${col}; margin-bottom: 4px;">[${time}] ${msg}</div>`;
+                terminal.scrollTop = terminal.scrollHeight;
+            };
 
-        const data = await response.json();
-        
-        // 3. Phase 1: Show 5km matches immediately
-        renderDonors(data.immediate_donors, "Phase 1: Immediate Matches (5km)");
-
-        // 4. Phase 2: Start the 30-second countdown
-        startEscalationTimer(30, data.escalation_donors); 
-
-    } catch (err) {
-        console.error("Fetch Error:", err);
-        resultsDiv.innerHTML = `<p style="color:#ff4d6d; padding: 20px; border: 1px solid #ff4d6d; border-radius: 12px; background: rgba(255, 77, 109, 0.1);">
-            <strong>System Offline</strong><br>
-            1. Check if app.py is running.<br>
-            2. Ensure 'flask-cors' is installed and active.
-        </p>`;
-    }
-}
-
-// Function to display donor cards in the results panel
-function renderDonors(donorList, title) {
-    const resultsDiv = document.getElementById('results');
-    let html = `<h4 class="section-label" style="color: var(--primary); margin-top: 20px;">${title}</h4>`;
-    
-    if (!donorList || donorList.length === 0) {
-        html += "<p class='placeholder-text'>No donors found in this range. Escalating search...</p>";
-    } else {
-        donorList.forEach(d => {
-            html += `
-            <div class="donor-card pulse-border" style="animation: fadeIn 0.5s ease forwards;">
-                <div class="donor-info">
-                    <strong>${d.name}</strong>
-                    <span>${d.distance_km} km away</span>
-                </div>
-                <span class="status-tag">Alert Sent & Calling...</span>
-            </div>`;
-        });
-    }
-
-    // Overwrite for Phase 1, Append for Phase 2
-    if (title.includes("Phase 1")) {
-        resultsDiv.innerHTML = html;
-    } else {
-        resultsDiv.innerHTML += html;
-    }
-}
-
-// Function to handle the 30-second escalation logic
-function startEscalationTimer(seconds, allDonors) {
-    let timeLeft = seconds;
-    const statusBadge = document.querySelector('.status-badge');
-    
-    const interval = setInterval(() => {
-        timeLeft--;
-        
-        // Update the badge with countdown
-        statusBadge.innerHTML = `⚠️ ESCALATION IN: ${timeLeft}s`;
-        statusBadge.style.background = "#334155"; // Dark blue-gray
-        statusBadge.style.color = "white";
-
-        if (timeLeft <= 0) {
-            clearInterval(interval);
-            statusBadge.innerHTML = "📡 RADIUS EXPANDED TO 10KM";
-            statusBadge.style.background = "#ff4d6d"; // Warning red
+            // 2. Start Simulation Sequence
+            log("Accessing Geofence API...", "#94a3b8");
             
-            // Re-render to show every donor within 10km
-            renderDonors(allDonors, "Phase 2: Expanded Alert (10km Radius)");
+            setTimeout(() => log(`Scanning for ${bloodGroup} donors within 5km...`, "#f8fafc"), 1000);
+
+            // 3. Trigger Real Backend Logic
+            try {
+                const response = await fetch('http://127.0.0.1:5000/request-blood', {
+                    method: 'POST',
+                    mode: 'cors',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        lat: 13.0280, 
+                        lon: 80.0440, 
+                        blood_group: bloodGroup 
+                    })
+                });
+
+                if (!response.ok) throw new Error('Backend Offline');
+                const data = await response.json();
+
+                // 4. Update Logs & UI with Real Data
+                setTimeout(() => {
+                    log(`MATCH FOUND: ${data.immediate_donors.length} donors detected in primary zone.`, "#4ade80");
+                    renderDonors(data.immediate_donors, "Phase 1: Immediate Matches (5km)");
+                }, 2000);
+
+                setTimeout(() => log("📤 SMS GATEWAY: Dispatching emergency texts...", "#ff4d6d"), 3500);
+                setTimeout(() => log("💬 WHATSAPP: Broadcasting to volunteer network...", "#25D366"), 5000);
+                setTimeout(() => log("📞 VOIP CALLS: Automated calls initiated.", "#38bdf8"), 6500);
+
+                // 5. Start the Escalation Timer
+                startEscalationTimer(30, data.escalation_donors);
+
+            } catch (err) {
+                log("ERROR: Backend connection failed.", "#ff4d6d");
+                resultsDiv.innerHTML = `<p style="color:#ff4d6d; padding: 20px; border: 1px solid #ff4d6d; border-radius: 12px; background: rgba(255, 77, 109, 0.1);">
+                    <strong>System Offline</strong><br>Check if app.py is running and CORS is enabled.</p>`;
+            }
         }
-    }, 1000);
-}
+
+        function renderDonors(donorList, title) {
+            const resultsDiv = document.getElementById('results');
+            let html = `<h4 class="section-label" style="color: #ff4d6d; margin-top: 20px; font-size:0.7rem;">${title}</h4>`;
+            
+            if (!donorList || donorList.length === 0) {
+                html += "<p class='placeholder-text'>No donors found in this range.</p>";
+            } else {
+                donorList.forEach(d => {
+                    html += `
+                    <div class="donor-card" style="background: rgba(255,255,255,0.05); padding:15px; border-radius:12px; margin-bottom:10px; display:flex; justify-content:space-between; align-items:center;">
+                        <div class="donor-info">
+                            <strong style="display:block;">${d.name}</strong>
+                            <span style="font-size:0.8rem; color:#94a3b8;">${d.distance_km} km away</span>
+                        </div>
+                        <span style="color:#ff4d6d; font-weight:bold; font-size:0.7rem;">ALERTED</span>
+                    </div>`;
+                });
+            }
+
+            if (title.includes("Phase 1")) resultsDiv.innerHTML = html;
+            else resultsDiv.innerHTML += html;
+        }
+
+        function startEscalationTimer(seconds, allDonors) {
+            let timeLeft = seconds;
+            const statusBadge = document.getElementById('system-status');
+            
+            const interval = setInterval(() => {
+                timeLeft--;
+                statusBadge.innerHTML = `⚠️ ESCALATION IN: ${timeLeft}s`;
+                statusBadge.style.background = "#334155";
+
+                if (timeLeft <= 0) {
+                    clearInterval(interval);
+                    statusBadge.innerHTML = "📡 RADIUS EXPANDED TO 10KM";
+                    statusBadge.style.background = "#ff4d6d";
+                    renderDonors(allDonors, "Phase 2: Expanded Alert (10km Radius)");
+                }
+            }, 1000);
+        }
     </script>
 </body>
 </html>

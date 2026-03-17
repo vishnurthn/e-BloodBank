@@ -180,3 +180,29 @@ def register_donor():
             return jsonify({"status": "error", "message": "Invalid Pincode"}), 400
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)}), 500
+    
+from flask import Flask, request, jsonify
+from flask_cors import CORS
+
+app = Flask(__name__)
+CORS(app)
+
+current_sos = {"active": False, "blood_type": None}
+
+@app.route('/trigger-sos', methods=['POST'])
+def trigger_sos():
+    global current_sos
+    data = request.json
+    current_sos = {"active": True, "blood_type": data['blood_type']}
+    return jsonify({"status": "broadcasted"})
+
+# Add this NEW route to stop the emergency
+@app.route('/reset-sos', methods=['POST'])
+def reset_sos():
+    global current_sos
+    current_sos = {"active": False, "blood_type": None}
+    return jsonify({"status": "cleared"})
+
+@app.route('/get-sos-status', methods=['GET'])
+def get_sos_status():
+    return jsonify(current_sos)

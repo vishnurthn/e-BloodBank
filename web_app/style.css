@@ -1,4 +1,6 @@
 @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Pacifico&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=League+Script&display=swap');
 
 :root {
     --primary: #ff4d6d;
@@ -11,6 +13,7 @@
 
 * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Plus Jakarta Sans', sans-serif; }
 
+/* Dashboard Default Body */
 body {
     background: var(--bg-dark);
     color: var(--text-main);
@@ -126,7 +129,111 @@ select {
 
 .status-tag { color: var(--primary); font-weight: 700; font-size: 0.75rem; }
 
-.placeholder-text { color: var(--text-dim); font-style: italic; opacity: 0.5; }
+/* ------------------------------------------------------------ */
+/* ISOLATED REGISTRATION PAGE STYLING (ONLY FOR hospital_reg.html) */
+/* ------------------------------------------------------------ */
 
-/* Loader Animation */
-.loader { color: var(--primary); font-weight: 700; text-align: center; padding: 20px; }
+/* Apply this class to the <body> of hospital_reg.html */
+.registration-body {
+    display: block !important; /* Overrides the flex used in dashboard */
+    overflow-y: auto !important;
+    background: var(--bg-dark);
+    padding: 40px 0;
+}
+
+.registration-body .admin-container {
+    max-width: 650px;
+    margin: 0 auto;
+    padding: 40px;
+    background: rgba(30, 41, 59, 0.7);
+    border-radius: 28px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(20px);
+}
+
+/* Specific Input Styling for Reg Page */
+.registration-body input, 
+.registration-body textarea {
+    width: 100%;
+    padding: 14px;
+    background: rgba(15, 23, 42, 0.6) !important;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 10px;
+    color: white !important;
+    outline: none;
+    margin-top: 5px;
+}
+
+.registration-body label {
+    color: white !important;
+    font-weight: 600;
+    font-size: 0.9rem;
+    display: block;
+    margin-top: 15px;
+}
+
+.registration-body .helper-text {
+    font-size: 0.75rem;
+    color: var(--text-dim);
+    font-style: italic;
+    margin-top: 4px;
+}
+
+.registration-body .file-input-wrapper {
+    border: 2px dashed rgba(255, 255, 255, 0.2);
+    padding: 25px;
+    text-align: center;
+    border-radius: 12px;
+    cursor: pointer;
+    margin-top: 10px;
+}
+
+.registration-body .sos-btn-large {
+    width: 100%;
+    margin-top: 30px;
+}
+.logo-container {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px;
+}
+
+.blood-drop {
+    font-size: 24px;
+    margin-left: -8px;
+    filter: drop-shadow(0 0 8px rgba(255, 0, 47, 0.6));
+}
+
+.logo-thread-wrap {
+    font-family: 'League Script', cursive; /* The "thread" font */
+    font-size: 2.4rem;
+    display: flex;
+    align-items: baseline;
+    /* Pulling the words together so they touch */
+    margin-left: -5px; 
+}
+
+/* Part 1: RED (White & Glowing) */
+.text-red {
+    color: #ffffff;
+    font-weight: 800;
+    margin-left: -4px;
+    text-shadow: 0 0 10px rgba(255, 255, 255, 0.4);
+}
+
+/* Part 2: THREAD (Red & Connected) */
+.text-thread {
+    color: #ff002f;
+    margin-left: -4px; /* Forces the 't' to connect to the 'd' of Red */
+    position: relative;
+    /* Subtle glow to make the "thread" look vibrant */
+    text-shadow: 1px 1px 6px rgba(255, 255, 255, 0.5), 0 0 15px rgba(255, 77, 109, 0.3);
+    transition: 0.3s;
+}
+
+/* Optional: Animation to make it look like a vibrating string */
+.logo-thread-wrap:hover .text-thread {
+    filter: brightness(1.2);
+    transform: translateY(-1px);
+}
