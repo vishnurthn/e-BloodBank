@@ -2,64 +2,122 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Emergency Navigation | E-Blood</title>
-    <link rel="stylesheet" href="style.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Emergency Navigation | RedThread</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap" rel="stylesheet">
     <style>
-        #map { height: 500px; width: 100%; border-radius: 20px; margin-top: 20px; border: 2px solid #ff4d6d; }
+        :root { --primary: #ff4d6d; --bg-dark: #0f172a; }
+        body { margin: 0; font-family: 'Plus Jakarta Sans', sans-serif; background: var(--bg-dark); color: white; overflow: hidden; }
+        
+        #map { height: 100vh; width: 100vw; z-index: 1; filter: grayscale(0.5) invert(0.9) hue-rotate(170deg); }
+        
         .nav-overlay {
-            position: absolute; top: 30px; left: 30px; z-index: 1000;
-            background: rgba(15, 23, 42, 0.9); padding: 20px; border-radius: 15px;
-            border: 1px solid #ff4d6d; color: white;
+            position: absolute; top: 20px; left: 20px; z-index: 1000;
+            background: rgba(15, 23, 42, 0.95); padding: 25px; border-radius: 24px;
+            border: 1.5px solid var(--primary); width: 300px; backdrop-filter: blur(10px);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+        }
+
+        .status-badge {
+            background: rgba(74, 222, 128, 0.2); color: #4ade80;
+            padding: 4px 12px; border-radius: 20px; font-size: 0.7rem;
+            font-weight: 800; text-transform: uppercase; margin-bottom: 10px; display: inline-block;
+        }
+
+        .eta-text { font-size: 1.8rem; font-weight: 800; margin: 5px 0; color: white; }
+        .sub-text { color: #94a3b8; font-size: 0.85rem; margin-bottom: 20px; }
+
+        .btn-back {
+            background: #1e293b; color: white; border: 1px solid rgba(255,255,255,0.1);
+            padding: 12px; width: 100%; border-radius: 12px; font-weight: 700; cursor: pointer;
         }
     </style>
 </head>
 <body>
+
     <div class="nav-overlay">
-        <h3 style="color: #ff4d6d;">Hospital Located</h3>
-        <p id="hDistance">Calculating distance...</p>
-        <button class="sos-btn-small" onclick="window.location.href='dashboard.html'" style="margin-top:10px; background:#334155;">BACK</button>
+        <div class="status-badge">● Live Mission Active</div>
+        <h3 style="color: var(--primary); font-weight: 800;">Hospital Route</h3>
+        <p class="eta-text" id="hDistance">---</p>
+        <p class="sub-text">Navigating to Saveetha Medical Centre Emergency Ward.</p>
+        <button class="btn-back" onclick="window.location.href='dashboard.html'">ABORT MISSION</button>
     </div>
 
     <div id="map"></div>
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script>
-        // Default Hospital Location (Saveetha Medical College area)
-        const hospitalLat = 13.0280;
-        const hospitalLon = 80.0440;
-
+        // Hospital Location (Saveetha Area)
+        const hospitalPos = [13.0280, 80.0440];
+        let donorMarker, donorCircle, routingLine;
+        
         // Initialize Map
-        const map = L.map('map').setView([hospitalLat, hospitalLon], 14);
+        const map = L.map('map', { zoomControl: false }).setView(hospitalPos, 15);
 
-        // Add Dark Mode Map Tiles (Standard OpenStreetMap)
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '© OpenStreetMap'
-        }).addTo(map);
+        // Dark-themed tiles
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
 
-        // Add Hospital Marker
+        // Hospital Marker
         const hospitalIcon = L.icon({
             iconUrl: 'https://cdn-icons-png.flaticon.com/512/4332/4332901.png',
-            iconSize: [40, 40]
+            iconSize: [45, 45]
         });
-        L.marker([hospitalLat, hospitalLon], {icon: hospitalIcon}).addTo(map)
+        L.marker(hospitalPos, {icon: hospitalIcon}).addTo(map)
             .bindPopup('<b>Saveetha Medical Centre</b><br>Emergency Entry').openPopup();
 
-        // Get Donor Location from LocalStorage
-        const donorData = JSON.parse(localStorage.getItem('currentUser'));
-        
-        // Simulate Donor Marker (In a real app, we'd use navigator.geolocation)
-        // For demo, we place them slightly away
-        const donorLat = hospitalLat + 0.005; 
-        const donorLon = hospitalLon + 0.005;
+        // 1. REAL-TIME TRACKING LOGIC
+        function updatePosition() {
+            navigator.geolocation.watchPosition((pos) => {
+                const lat = pos.coords.latitude;
+                const lng = pos.coords.longitude;
+                const currentPos = [lat, lng];
 
-        L.circle([donorLat, donorLon], { color: '#4ade80', fillColor: '#4ade80', fillOpacity: 0.5, radius: 100 })
-            .addTo(map).bindPopup('Your Current Location');
+                // Update or Create Donor Marker
+                if (!donorMarker) {
+                    donorMarker = L.circleMarker(currentPos, {
+                        color: '#4ade80', radius: 10, fillOpacity: 1, weight: 3
+                    }).addTo(map);
+                    
+                    routingLine = L.polyline([currentPos, hospitalPos], {
+                        color: '#ff4d6d', weight: 4, dashArray: '10, 15'
+                    }).addTo(map);
+                } else {
+                    donorMarker.setLatLng(currentPos);
+                    routingLine.setLatLngs([currentPos, hospitalPos]);
+                }
 
-        // Draw a simple line representing the path
-        const path = L.polyline([[donorLat, donorLon], [hospitalLat, hospitalLon]], {color: '#ff4d6d', weight: 5, dashArray: '10, 10'}).addTo(map);
-        
-        document.getElementById('hDistance').innerText = "Distance: 1.2 km (4 mins)";
+                // Auto-center map on donor
+                map.panTo(currentPos);
+
+                // Calculate Distance (Simple Haversine)
+                const dist = map.distance(currentPos, hospitalPos);
+                document.getElementById('hDistance').innerText = (dist / 1000).toFixed(1) + " KM";
+
+                // 2. REWARD TRIGGER (If within 50 meters of Hospital)
+                if (dist < 50) {
+                    handleArrival();
+                }
+
+                // Sync with Hospital Dashboard (Mock API call)
+                console.log(`[NETWORK SYNC] Donor Location pushed to Hospital: ${lat}, ${lng}`);
+            }, (err) => {
+                alert("GPS Lost. Please ensure location is enabled.");
+            }, { enableHighAccuracy: true });
+        }
+
+        function handleArrival() {
+            // Update LocalStorage Points
+            const data = JSON.parse(localStorage.getItem('currentUser'));
+            data.points = (data.points || 650) + 500; // Add 500 points for successful arrival
+            localStorage.setItem('currentUser', JSON.stringify(data));
+
+            alert("MISSION ACCOMPLISHED! You have arrived at the hospital. +500 Hero Points Awarded!");
+            window.location.href = 'dashboard.html';
+        }
+
+        // Start tracking on load
+        window.onload = updatePosition;
     </script>
 </body>
 </html>

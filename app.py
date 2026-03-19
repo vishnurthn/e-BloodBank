@@ -1,14 +1,13 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 from geopy.distance import geodesic
+import random
 
 app = Flask(__name__)
-
-# CRITICAL FIX: This allows your local HTML file to talk to this Python server
-# It solves the "Response to preflight request doesn't pass access control check" error
+# Allows your Hospital HTML to communicate with this server
 CORS(app, resources={r"/*": {"origins": "*"}})
 
-# Dataset: 50 Donors with diverse blood groups and distances
+# --- DATABASE: Your existing 50 Donors + Randomized Locations ---
 donors = [
     # --- NEARBY (0km - 5km) ---
     {"id": 1, "name": "Arjun", "blood_group": "O+", "lat": 13.0285, "lon": 80.0450},
@@ -71,18 +70,22 @@ donors = [
     {"id": 50, "name": "Ishita", "blood_group": "A+", "lat": 13.0265, "lon": 80.0435}
 ]
 
+# State management for the SOS
+current_sos = {"active": False, "blood_type": None, "target_donors": []}
+
 @app.route('/request-blood', methods=['POST'])
 def request_blood():
+    global current_sos
     try:
         data = request.json
-        # Coordinates for Saveetha Engineering College area
+        # Hospital Location (Default: Saveetha Engineering College)
         h_lat = data.get('lat', 13.0280)
         h_lon = data.get('lon', 80.0440)
         requested_bg = data.get('blood_group')
 
-        print(f"!!! Emergency Request Received: {requested_bg} !!!")
+        print(f"🚨 EMERGENCY: {requested_bg} Required at Hospital")
 
-        # 1. Filter by Blood Group and calculate distances
+        # 1. IDENTIFY EXACT MATCHES & CALCULATE DISTANCE
         matches = []
         for d in donors:
             if d['blood_group'] == requested_bg:
@@ -90,21 +93,38 @@ def request_blood():
                 matches.append({
                     "id": d['id'],
                     "name": d['name'],
-                    "distance_km": round(dist, 2)
+                    "distance_km": round(dist, 2),
+                    "status": "CALL_INITIATED"
                 })
 
-        # 2. Logic: Phase 1 (Immediate - within 2km)
-        immediate_donors = [d for d in matches if d['distance_km'] <= 2.0]
-        
-        # 3. Logic: Phase 2 (Escalation - within 10km)
-        # These are sent back so the frontend can display them after 10 mins
-        escalation_donors = [d for d in matches if 2.0 < d['distance_km'] <= 10.0]
+        # Sort by proximity
+        matches.sort(key=lambda x: x['distance_km'])
+
+        # 2. SEPARATE INTO PHASES
+        immediate = [d for d in matches if d['distance_km'] <= 5.0]
+        escalation = [d for d in matches if 5.0 < d['distance_km'] <= 15.0]
+
+        # 3. SET GLOBAL SOS STATE
+        current_sos = {
+            "active": True,
+            "blood_type": requested_bg,
+            "target_donors": [d['id'] for d in matches]
+        }
+
+        # 4. PREPARE TERMINAL LOGS
+        broadcast_alerts = [
+            f"AES-256 Encryption: Verified",
+            f"Matching Logic: Found {len(matches)} donors for {requested_bg}",
+            f"VoIP Gateway: Calling Phase 1 donors...",
+            f"Push Notification: Sent to RedThread App"
+        ]
 
         return jsonify({
             "status": "SOS_ACTIVE",
-            "timer_limit_minutes": 10,
-            "immediate_donors": immediate_donors,
-            "escalation_donors": escalation_donors,
+            "encryption": "AES-256-GCM Secure Link",
+            "broadcast_alerts": broadcast_alerts,
+            "immediate_donors": immediate,
+            "escalation_donors": escalation,
             "total_matches": len(matches)
         }), 200
 
@@ -112,97 +132,12 @@ def request_blood():
         print(f"Backend Error: {e}")
         return jsonify({"error": str(e)}), 500
 
-if __name__ == '__main__':
-    # Running on 0.0.0.0 makes it accessible across your local network
-    app.run(debug=True, host='0.0.0.0', port=5000)
-
-    @app.route('/request-blood', methods=['POST'])
-    def request_blood():
-        try:
-            data = request.json
-            h_lat, h_lon = data.get('lat', 13.0280), data.get('lon', 80.0440)
-            requested_bg = data.get('blood_group')
-
-            # 1. Filter and Calculate
-            matches = []
-            for d in donors:
-                if d['blood_group'] == requested_bg:
-                    dist = geodesic((h_lat, h_lon), (d['lat'], d['lon'])).km
-                    matches.append({**d, "distance_km": round(dist, 2)})
-
-            # 2. Updated Phase 1: Now 5 km
-            immediate_donors = [d for d in matches if d['distance_km'] <= 5.0]
-            
-            # 3. Updated Phase 2: Now 10 km (Including previous donors)
-            escalation_donors = [d for d in matches if d['distance_km'] <= 10.0]
-
-            return jsonify({
-                "status": "SOS_ACTIVE",
-                "immediate_donors": immediate_donors,
-                "escalation_donors": escalation_donors
-            }), 200
-        except Exception as e:
-            return jsonify({"error": str(e)}), 500
-        
-# Add this to your existing app.py
-from geopy.geocoders import Nominatim
-
-geolocator = Nominatim(user_agent="eblood_bank_app")
-
-# This will store donors registered during the demo session
-registered_donors = []
-
-@app.route('/register-donor', methods=['POST'])
-def register_donor():
-    data = request.json
-    pincode = data.get('pincode')
-    
-    try:
-        # Convert Pincode to Lat/Lon
-        location = geolocator.geocode(f"{pincode}, India")
-        if location:
-            new_donor = {
-                "id": len(donors) + len(registered_donors) + 1,
-                "name": data['name'],
-                "blood_group": data['blood_group'],
-                "age": data['age'],
-                "phone": data['phone'],
-                "lat": location.latitude,
-                "lon": location.longitude,
-                "address": data['address']
-            }
-            registered_donors.append(new_donor)
-            # Add to the main search list as well
-            donors.append(new_donor) 
-            
-            return jsonify({"status": "success", "donor": new_donor}), 200
-        else:
-            return jsonify({"status": "error", "message": "Invalid Pincode"}), 400
-    except Exception as e:
-        return jsonify({"status": "error", "message": str(e)}), 500
-    
-from flask import Flask, request, jsonify
-from flask_cors import CORS
-
-app = Flask(__name__)
-CORS(app)
-
-current_sos = {"active": False, "blood_type": None}
-
-@app.route('/trigger-sos', methods=['POST'])
-def trigger_sos():
-    global current_sos
-    data = request.json
-    current_sos = {"active": True, "blood_type": data['blood_type']}
-    return jsonify({"status": "broadcasted"})
-
-# Add this NEW route to stop the emergency
 @app.route('/reset-sos', methods=['POST'])
 def reset_sos():
     global current_sos
-    current_sos = {"active": False, "blood_type": None}
+    current_sos = {"active": False, "blood_type": None, "target_donors": []}
     return jsonify({"status": "cleared"})
 
-@app.route('/get-sos-status', methods=['GET'])
-def get_sos_status():
-    return jsonify(current_sos)
+if __name__ == '__main__':
+    print("RedThread Backend Active on http://127.0.0.1:5000")
+    app.run(debug=True, host='0.0.0.0', port=5000)

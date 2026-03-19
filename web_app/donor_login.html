@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>RED-THREAD | Donor Registration</title>
+    <title>RedThread | Donor Registration</title>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -14,18 +14,15 @@
             --text-main: #f8fafc;
             --text-muted: #94a3b8;
             --input-bg: #1e293b;
+            --success: #10b981;
         }
 
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: 'Plus Jakarta Sans', sans-serif;
-        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Plus Jakarta Sans', sans-serif; }
 
         body {
             background-color: var(--bg-dark);
-            background-image: radial-gradient(circle at top right, rgba(255, 77, 109, 0.1), transparent);
+            background-image: radial-gradient(circle at top right, rgba(255, 77, 109, 0.15), transparent),
+                              radial-gradient(circle at bottom left, rgba(15, 23, 42, 1), transparent);
             color: var(--text-main);
             display: flex;
             justify-content: center;
@@ -37,170 +34,99 @@
         .login-container {
             width: 100%;
             max-width: 540px;
-            padding: 50px;
+            padding: 40px;
             background: var(--card-bg);
             border-radius: 32px;
             border: 1px solid rgba(255, 255, 255, 0.08);
-            backdrop-filter: blur(20px);
+            backdrop-filter: blur(24px);
             box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
         }
 
-        /* Brand Styling */
-        .brand-header {
-            text-align: center;
-            margin-bottom: 40px;
-        }
+        .brand-header { text-align: center; margin-bottom: 30px; }
+        .logo-text { font-weight: 800; font-size: 2rem; letter-spacing: -1px; display: flex; justify-content: center; align-items: center; gap: 10px; text-transform: uppercase; }
+        .blood-drop { filter: drop-shadow(0 0 12px rgba(255, 77, 109, 0.6)); }
+        .tagline { color: var(--text-muted); font-size: 0.7rem; letter-spacing: 4px; text-transform: uppercase; margin-top: 5px; font-weight: 700; }
 
-        .logo-text {
-            font-weight: 800;
-            font-size: 2.2rem;
-            letter-spacing: -1px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            gap: 12px;
-            text-transform: uppercase;
-        }
+        h2 { font-size: 1.4rem; font-weight: 700; margin-bottom: 6px; }
+        .sub-desc { color: var(--text-muted); margin-bottom: 25px; font-size: 0.9rem; line-height: 1.5; }
 
-        .blood-drop {
-            filter: drop-shadow(0 0 12px rgba(255, 77, 109, 0.8));
-        }
-
-        .tagline {
-            color: var(--text-muted);
-            font-size: 0.75rem;
-            letter-spacing: 3px;
-            text-transform: uppercase;
-            margin-top: 5px;
-            font-weight: 600;
-        }
-
-        /* Form Elements */
-        h2 {
-            font-size: 1.5rem;
-            font-weight: 700;
-            margin-bottom: 8px;
-            color: var(--text-main);
-        }
-
-        .sub-desc {
-            color: var(--text-muted);
-            margin-bottom: 32px;
-            font-size: 0.95rem;
-        }
-
-        .form-group { margin-bottom: 24px; }
-        
-        label { 
-            display: block; 
-            color: var(--text-muted); 
-            margin-bottom: 10px; 
-            font-size: 0.85rem;
-            font-weight: 600;
-        }
+        .form-group { margin-bottom: 18px; }
+        label { display: block; color: var(--text-muted); margin-bottom: 8px; font-size: 0.8rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;}
 
         input, select, textarea {
             width: 100%;
-            padding: 14px 16px;
+            padding: 12px 16px;
             background: var(--input-bg);
             border: 1px solid rgba(255, 255, 255, 0.1);
             border-radius: 12px;
             color: white;
-            font-size: 0.95rem;
-            transition: all 0.3s ease;
+            font-size: 0.9rem;
+            transition: all 0.2s ease;
         }
 
         input:focus, select:focus, textarea:focus {
             border-color: var(--primary);
             background: rgba(30, 41, 59, 1);
             outline: none;
-            box-shadow: 0 0 0 4px rgba(255, 77, 109, 0.15);
+            box-shadow: 0 0 0 4px rgba(255, 77, 109, 0.1);
         }
 
-        .form-grid { 
-            display: grid; 
-            grid-template-columns: 1fr 1fr; 
-            gap: 20px; 
-        }
+        .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
 
-        /* Checkbox Styling */
         .checkbox-group { 
-            display: flex; 
-            align-items: center; 
-            gap: 12px; 
-            color: var(--text-muted); 
-            font-size: 0.85rem; 
-            margin: 20px 0;
-            cursor: pointer;
+            display: flex; align-items: flex-start; gap: 12px; 
+            color: var(--text-muted); font-size: 0.8rem; 
+            margin: 20px 0; cursor: pointer; line-height: 1.4;
         }
 
-        .checkbox-group input { width: 18px; height: 18px; cursor: pointer; }
+        .checkbox-group input { width: 18px; height: 18px; margin-top: 2px; }
 
-        /* Error States */
-        .error-msg { 
-            color: var(--primary); 
-            font-size: 0.8rem; 
-            margin-top: 8px; 
-            display: none; 
-            font-weight: 500;
-        }
+        .error-msg { color: var(--primary); font-size: 0.75rem; margin-top: 6px; display: none; font-weight: 600; }
+        .gps-status { font-size: 0.75rem; margin-bottom: 15px; color: var(--success); display: none; font-weight: 600; }
 
-        /* Button Styling */
         .btn-register {
-            width: 100%;
-            padding: 16px;
-            background: var(--primary);
-            color: white;
-            border: none;
-            border-radius: 14px;
-            font-size: 1rem;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            cursor: pointer;
+            width: 100%; padding: 16px; background: var(--primary);
+            color: white; border: none; border-radius: 14px;
+            font-size: 0.95rem; font-weight: 800; text-transform: uppercase;
+            letter-spacing: 1.5px; cursor: pointer;
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            box-shadow: 0 10px 20px -10px rgba(255, 77, 109, 0.5);
+            box-shadow: 0 10px 20px -10px rgba(255, 77, 109, 0.4);
         }
 
-        .btn-register:hover {
-            background: var(--primary-hover);
-            transform: translateY(-2px);
-            box-shadow: 0 15px 30px -10px rgba(255, 77, 109, 0.6);
-        }
-
-        .btn-register:active { transform: translateY(0); }
+        .btn-register:hover:not(:disabled) { background: var(--primary-hover); transform: translateY(-2px); }
+        .btn-register:disabled { background: #334155; cursor: not-allowed; box-shadow: none; opacity: 0.6; }
 
         ::placeholder { color: #475569; }
-
     </style>
 </head>
 <body>
 
     <div class="login-container">
         <div class="brand-header">
-            <h1 class="logo-text">
-                <span class="blood-drop">🩸</span> RED-THREAD
-            </h1>
-            <p class="tagline">Emergency Blood Network</p>
+            <h1 class="logo-text"><span class="blood-drop">🩸</span> RED-THREAD</h1>
+            <p class="tagline">Emergency Response Grid</p>
         </div>
 
-        <h2>Become a Life Saver</h2>
-        <p class="sub-desc">Register to join the 5km emergency response grid.</p>
+        <h2>Become a Hero</h2>
+        <p class="sub-desc">Mandatory GPS tracking is required for the 5km emergency notification system.</p>
+
+        <p id="gpsMessage" class="gps-status">✅ Live GPS Connection Established</p>
 
         <form id="donorForm">
             <div class="form-group">
                 <label>Full Name</label>
-                <input type="text" id="name" required placeholder="Vishnu Rathan B.">
+                <input type="text" id="name" required placeholder="Vishnu Rathan">
             </div>
 
             <div class="form-grid">
                 <div class="form-group">
                     <label>Age</label>
-                    <input type="number" id="age" required min="18" placeholder="19">
+                    <input type="number" id="age" required min="18" max="65" placeholder="19">
                 </div>
                 <div class="form-group">
                     <label>Blood Group</label>
-                    <select id="bloodGroup">
+                    <select id="bloodGroup" required>
+                        <option value="">Select</option>
                         <option value="O+">O+</option>
                         <option value="O-">O-</option>
                         <option value="A+">A+</option>
@@ -213,61 +139,84 @@
                 </div>
             </div>
 
-            <div class="form-group">
-                <label>Phone Number</label>
-                <input type="tel" id="phone" required placeholder="+91 63741 14505">
+            <div class="form-grid">
+                <div class="form-group">
+                    <label>Contact Number</label>
+                    <input type="tel" id="phone" required placeholder="+91 63741 14505">
+                </div>
+                <div class="form-group">
+                    <label>Pincode</label>
+                    <input type="text" id="pincode" required placeholder="601025">
+                </div>
             </div>
 
             <div class="form-group">
-                <label>Pincode</label>
-                <input type="text" id="pincode" required placeholder="601025">
-            </div>
-
-            <div class="form-group">
-                <label>Address</label>
-                <textarea id="address" rows="2" placeholder="Street Name, Area"></textarea>
-            </div>
-
-            <div class="form-group">
-                <label>Tattoo History (Last 6 Months)</label>
+                <label>Recent Tattoo (Last 6 Months)</label>
                 <select id="tattooStatus" onchange="checkEligibility()">
                     <option value="no">No</option>
                     <option value="yes">Yes</option>
                 </select>
-                <p id="tattooError" class="error-msg">⚠️ Ineligible to donate for 6 months after getting a tattoo.</p>
+                <p id="tattooError" class="error-msg">⚠️ Safety Alert: Ineligible for 6 months after a tattoo.</p>
             </div>
 
             <label class="checkbox-group">
                 <input type="checkbox" id="terms" required checked>
-                <span>I agree to receive emergency SOS alerts.</span>
+                <span>I consent to mandatory Live GPS tracking and emergency SOS broadcasts within my 5km radius.</span>
             </label>
 
-            <button type="submit" id="regBtn" class="btn-register">Register as Donor</button>
+            <input type="hidden" id="lat">
+            <input type="hidden" id="lng">
+
+            <button type="submit" id="regBtn" class="btn-register">Initialize Profile</button>
         </form>
     </div>
 
     <script>
-        // Real-time eligibility check
+        // Start GPS request immediately on load
+        window.onload = function() {
+            requestGPS();
+        };
+
+        function requestGPS() {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(
+                    (pos) => {
+                        document.getElementById('lat').value = pos.coords.latitude;
+                        document.getElementById('lng').value = pos.coords.longitude;
+                        document.getElementById('gpsMessage').style.display = 'block';
+                        console.log("GPS Lock: " + pos.coords.latitude + ", " + pos.coords.longitude);
+                    },
+                    (err) => {
+                        alert("MANDATORY: RedThread requires GPS to save lives. Please enable location to register.");
+                        document.getElementById('regBtn').disabled = true;
+                        document.getElementById('regBtn').innerText = "Location Required";
+                    },
+                    { enableHighAccuracy: true }
+                );
+            }
+        }
+
         function checkEligibility() {
             const status = document.getElementById('tattooStatus').value;
             const error = document.getElementById('tattooError');
-            const select = document.getElementById('tattooStatus');
+            const regBtn = document.getElementById('regBtn');
             
             if(status === 'yes') {
                 error.style.display = 'block';
-                select.style.borderColor = '#ff4d6d';
+                regBtn.disabled = true;
+                regBtn.innerText = "Ineligible to Register";
             } else {
                 error.style.display = 'none';
-                select.style.borderColor = 'rgba(255, 255, 255, 0.1)';
+                regBtn.disabled = false;
+                regBtn.innerText = "Initialize Profile";
             }
         }
 
         document.getElementById('donorForm').onsubmit = async function(e) {
             e.preventDefault();
             const regBtn = document.getElementById('regBtn');
-            const originalText = regBtn.innerText;
-            regBtn.innerText = "Syncing with Network...";
-            regBtn.style.opacity = "0.7";
+            regBtn.innerText = "Establishing Red-Thread...";
+            regBtn.style.background = "#10b981"; // Success Green
 
             const donorData = {
                 name: document.getElementById('name').value,
@@ -275,24 +224,19 @@
                 blood_group: document.getElementById('bloodGroup').value,
                 phone: document.getElementById('phone').value,
                 pincode: document.getElementById('pincode').value,
-                address: document.getElementById('address').value
+                lat: document.getElementById('lat').value,
+                lng: document.getElementById('lng').value,
+                points: 0,
+                last_donation: null,
+                is_on_mission: 0
             };
 
-            // Demo logic: Simulate a 1-second delay for a "high-tech" feel
-            setTimeout(async () => {
-                try {
-                    await fetch('http://127.0.0.1:5000/register-donor', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(donorData)
-                    });
-                } catch (err) {
-                    console.log("Local demo mode active.");
-                } finally {
-                    localStorage.setItem('currentUser', JSON.stringify(donorData));
-                    window.location.href = 'dashboard.html';
-                }
-            }, 1000);
+            // Simulate AI Sync
+            setTimeout(() => {
+                localStorage.setItem('currentUser', JSON.stringify(donorData));
+                alert("Profile Active! You are now part of the emergency response grid.");
+                window.location.href = 'dashboard.html';
+            }, 1500);
         };
     </script>
 </body>

@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RedThread | Rewards Store</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap" rel="stylesheet">
+    <style>
+        :root { --primary: #ff4d6d; --bg-dark: #0f172a; }
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background: var(--bg-dark); color: white; margin: 0; display: flex; }
+        
+        .points-banner {
+            background: linear-gradient(135deg, #ff4d6d 0%, #ba2d44 100%);
+            padding: 35px; border-radius: 24px; color: white;
+            display: flex; justify-content: space-between; align-items: center;
+            margin-bottom: 40px; box-shadow: 0 20px 40px rgba(255, 77, 109, 0.2);
+        }
+
+        .rewards-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+            gap: 25px; padding-bottom: 50px;
+        }
+
+        .reward-card {
+            background: rgba(30, 41, 59, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 20px; padding: 20px;
+            text-align: center; transition: all 0.3s ease;
+            position: relative;
+        }
+
+        /* Image Styling */
+        .reward-img {
+            width: 100%; height: 160px; object-fit: cover;
+            border-radius: 15px; margin-bottom: 15px; display: block;
+        }
+
+        .reward-card.locked { opacity: 0.5; }
+        .reward-card.locked .reward-img { filter: grayscale(0) brightness(0.4); }
+
+        .price-tag {
+            background: rgba(255, 77, 109, 0.15); color: #ff4d6d;
+            padding: 6px 15px; border-radius: 30px;
+            font-size: 0.75rem; font-weight: 800; display: inline-block;
+        }
+
+        .redeem-btn {
+            background: #1e293b; color: #475569;
+            border: none; padding: 12px; border-radius: 12px;
+            width: 100%; margin-top: 15px; font-weight: 700;
+            transition: 0.3s; cursor: pointer;
+        }
+
+        .reward-card.eligible .redeem-btn { background: var(--primary); color: white; }
+
+        .lock-badge {
+            position: absolute; top: 10px; left: 10px; z-index: 2;
+            background: #ffb703; color: #000; padding: 4px 8px;
+            border-radius: 8px; font-size: 0.6rem; font-weight: 800;
+        }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <div class="logo-container">
+            <span class="blood-drop">🩸</span>
+            <div class="logo-thread-wrap"><span class="text-red">Red</span><span class="text-thread">thread</span></div>
+        </div>
+        <div class="nav-item" onclick="window.location.href='dashboard.html'">Dashboard</div>
+        <div class="nav-item active">🎁 Rewards</div>
+    </div>
+
+    <div class="main-content" style="flex: 1; padding: 40px;">
+        <div class="points-banner">
+            <div>
+                <p style="opacity: 0.8; font-size: 0.8rem; text-transform: uppercase;">Points Balance</p>
+                <h1 id="userPoints" style="margin: 5px 0 0 0; font-size: 3.5rem;">300<small style="font-size: 1rem;">PTS</small></h1>
+            </div>
+            <div style="text-align: right; background: rgba(0,0,0,0.2); padding: 15px 25px; border-radius: 15px;">
+                <p style="opacity: 0.8; font-size: 0.8rem; margin: 0;">Verified Donations</p>
+                <h2 id="donationCount" style="margin: 5px 0 0 0; font-size: 2rem;">1</h2>
+            </div>
+        </div>
+
+        <h2 style="margin-bottom: 30px;">Redeem Merchandise</h2>
+        <div class="rewards-grid" id="rewardGrid"></div>
+    </div>
+
+    <script>
+        let points = 1250; 
+        let userDonations = 1; 
+
+        // UPDATED ARRAY WITH YOUR EXACT FILENAMES
+        const rewards = [
+            { id: 1, name: "Silicon Wristband", pts: 200, minDon: 1, file: "reward-1.jpg.png" },
+            { id: 2, name: "Medical Kit", pts: 500, minDon: 2, file: "reward-2.jpg.png" },
+            { id: 3, name: "Starbucks Voucher", pts: 450, minDon: 2, file: "reward-3.jpg.png" },
+            { id: 4, name: "Donor T-Shirt", pts: 800, minDon: 2, file: "reward-4.jpg.png" },
+            { id: 5, name: "Metal Flask", pts: 1000, minDon: 3, file: "reward-5.jpg.png" },
+            { id: 6, name: "Full Body Checkup", pts: 1500, minDon: 3, file: "reward-6.jpg.png" },
+            { id: 7, name: "Wireless Earbuds", pts: 2500, minDon: 4, file: "reward-7.jpg.png" },
+            { id: 8, name: "Amazon Gift Card", pts: 1200, minDon: 3, file: "reward-8.jpg.png" },
+            { id: 9, name: "Premium Hoodie", pts: 2000, minDon: 4, file: "reward-9.jpg.png" },
+            { id: 10, name: "RedThread Cap", pts: 300, minDon: 1, file: "reward-10.jpg.jpg" }
+        ];
+
+        function loadRewards() {
+            const grid = document.getElementById('rewardGrid');
+            grid.innerHTML = "";
+
+            rewards.forEach(item => {
+                const isEligible = userDonations >= item.minDon;
+                const card = document.createElement('div');
+                card.className = `reward-card ${isEligible ? 'eligible' : 'locked'}`;
+                
+                card.innerHTML = `
+                    ${!isEligible ? `<div class="lock-badge">🔒 MIN. ${item.minDon} DONATIONS</div>` : ''}
+                    <img src="images/${item.file}" alt="${item.name}" class="reward-img">
+                    <h4 style="color: white; margin: 10px 0;">${item.name}</h4>
+                    <span class="price-tag">${item.pts} POINTS</span>
+                    <button class="redeem-btn" onclick="redeem(${item.pts}, ${item.minDon})" ${!isEligible ? 'disabled' : ''}>
+                        ${isEligible ? 'REDEEM NOW' : 'LOCKED'}
+                    </button>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        function redeem(cost, min) {
+            if (points >= cost) {
+                points -= cost;
+                document.getElementById('userPoints').innerText = points.toLocaleString() + " PTS";
+                alert("Redemption Success!");
+            } else {
+                alert("Insufficient Points!");
+            }
+        }
+
+        loadRewards();
+    </script>
+</body>
+</html>
