@@ -60,6 +60,20 @@
             border: 1px solid rgba(255,255,255,0.05);
         }
 
+        /* --- Nav Items --- */
+        .nav-item {
+            margin-top: 15px;
+            padding: 12px;
+            background: rgba(255,255,255,0.03);
+            border-radius: 12px;
+            cursor: pointer;
+            transition: 0.3s;
+            border: 1px solid rgba(255,255,255,0.05);
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+        .nav-item:hover { background: rgba(255,255,255,0.1); }
+
         /* --- Rewards Card --- */
         .rewards-card {
             background: linear-gradient(135deg, #f1c40f, #f39c12);
@@ -105,9 +119,35 @@
         .thread-text { font-family: 'League Script', cursive; font-size: 2.3rem; }
 
         .live-dot { height: 10px; width: 10px; background-color: #4ade80; border-radius: 50%; display: inline-block; margin-right: 5px; box-shadow: 0 0 8px #4ade80; }
+
+        /* --- Safety Modal Styling --- */
+        .safety-overlay {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
+            background: rgba(0,0,0,0.85); backdrop-filter: blur(10px); z-index: 20000; 
+            align-items: center; justify-content: center;
+        }
+        .safety-card {
+            background: #1e293b; border: 1px solid rgba(255, 77, 109, 0.4); 
+            padding: 40px; border-radius: 32px; max-width: 400px; text-align: center;
+        }
     </style>
 </head>
 <body>
+
+    <div id="safetyModal" class="safety-overlay">
+        <div class="safety-card">
+            <div style="font-size: 3rem; margin-bottom: 20px;">⚠️</div>
+            <h2 style="color: white; margin-bottom: 15px; font-weight: 800;">Safety Verification</h2>
+            <p style="color: #94a3b8; line-height: 1.6; margin-bottom: 25px;">
+                To ensure blood quality and donor safety: <br>
+                <strong>Have you consumed alcohol within the last 24 hours?</strong>
+            </p>
+            <div style="display: flex; gap: 15px; flex-direction: column;">
+                <button onclick="confirmAlcohol(false)" style="background: #22c55e; color: white; border: none; padding: 16px; border-radius: 14px; font-weight: 800; cursor: pointer;">NO, I AM SOBER</button>
+                <button onclick="confirmAlcohol(true)" style="background: rgba(255,255,255,0.05); color: #94a3b8; border: 1px solid rgba(255,255,255,0.1); padding: 12px; border-radius: 14px; cursor: pointer;">YES, I HAVE DRUNK</button>
+            </div>
+        </div>
+    </div>
 
     <div id="notification-stack"></div>
     
@@ -138,6 +178,7 @@
                 <div class="progress-bar"><div class="progress-fill"></div></div>
                 <p style="font-size: 0.65rem; margin-top: 8px; font-weight: 600;">350 pts to Gold Voucher</p>
             </div>
+
             <div class="nav-item" onclick="window.location.href='rewards.html'">🎁 My Rewards</div>
             
             <button onclick="logout()" style="margin-top:auto; width:100%; background:transparent; color:#475569; border:1px solid #334155; padding:12px; border-radius:10px; cursor:pointer; font-weight:600;">Logout</button>
@@ -145,7 +186,7 @@
 
         <main class="main-activity">
             <h1 style="color: white; font-weight: 800; margin-bottom: 10px; font-size: 2.2rem;">Network Presence</h1>
-            <p style="color: var(--text-muted); margin-bottom: 40px;">Your 5km emergency grid is active and synchronized.</p>
+            <p style="color: var(--text-muted); margin-bottom: 40px;">Your emergency grid is active and synchronized.</p>
 
             <div id="emergencyAlert" class="emergency-banner">
                 <h1 style="color: var(--primary); margin-bottom: 15px; font-size: 2.5rem;">🚨 CRITICAL SOS</h1>
@@ -164,6 +205,7 @@
             </div>
         </main>
     </div>
+    
 
     <script>
         window.onload = function() {
@@ -174,20 +216,12 @@
             document.getElementById('userBG').innerText = data.blood_group;
             document.getElementById('userPoints').innerText = data.points || 650;
             
-            // Initials logic
             const parts = data.name.trim().split(' ');
             document.getElementById('initials').innerText = parts.length > 1 ? (parts[0][0] + parts[parts.length-1][0]).toUpperCase() : parts[0][0].toUpperCase();
 
-            // Start Mandatory GPS Heartbeat
             startGPSHeartbeat(data.name);
 
-            // Simulation Sequence for Demo
             setTimeout(() => showToast("💬", "Messages", "REDTHREAD SOS: Critical O+ shortage at Saveetha Medical Centre. Reply 1 to Accept."), 5000);
-
-           
-
-            // 2. WhatsApp arrives after 12 seconds
-
             setTimeout(() => showToast("🟢", "WhatsApp", "🩸 RedThread Bot: You are identified as the nearest match (0.8km). Requesting immediate support."), 12000);
             setTimeout(() => { document.getElementById('incoming-call').style.display = 'block'; }, 16000);
         };
@@ -196,13 +230,9 @@
             if (navigator.geolocation) {
                 setInterval(() => {
                     navigator.geolocation.getCurrentPosition((pos) => {
-                        console.log(`[SYNC] ${userName} at ${pos.coords.latitude}, ${pos.coords.longitude}`);
                         document.getElementById('userLocation').innerText = `📍 Live: ${pos.coords.latitude.toFixed(4)}, ${pos.coords.longitude.toFixed(4)}`;
-                        
-                        // Backend Sync Placeholder
-                        // fetch('/api/update-location', { method: 'POST', body: JSON.stringify({lat: pos.coords.latitude, lng: pos.coords.longitude}) });
                     });
-                }, 30000); // Sync every 30 seconds
+                }, 30000);
             }
         }
 
@@ -221,9 +251,23 @@
             document.getElementById('emergencyAlert').style.display = 'block';
         }
 
+        // Logic Update: Show Safety Modal first
         function acceptRequest() {
-            alert("Mission Accepted! GPS Tracking and ETA enabled for Hospital Dashboard.");
-            window.location.href = 'map.html'; // Navigate to the live tracking map
+            document.getElementById('safetyModal').style.display = 'flex';
+        }
+
+        // Safety Modal Handler
+        function confirmAlcohol(hasDrunk) {
+            const modal = document.getElementById('safetyModal');
+            if (hasDrunk) {
+                modal.style.display = 'none';
+                alert("❌ Safety Protocol: Sorry, you cannot donate blood within 24 hours of consuming alcohol. Your mission has been cancelled.");
+                ignoreRequest(); 
+            } else {
+                modal.style.display = 'none';
+                alert("✅ Verification Successful! Sharing your live location with the Hospital dashboard.");
+                window.location.href = 'map.html'; 
+            }
         }
 
         function ignoreRequest() {
