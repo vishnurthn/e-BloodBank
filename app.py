@@ -67,7 +67,18 @@ donors = [
     {"id": 47, "name": "Aryan", "blood_group": "B-", "lat": 13.0780, "lon": 80.1900},
     {"id": 48, "name": "Shruti", "blood_group": "O+", "lat": 13.1100, "lon": 80.2500},
     {"id": 49, "name": "Tushar", "blood_group": "AB-", "lat": 12.9500, "lon": 80.1000},
-    {"id": 50, "name": "Ishita", "blood_group": "A+", "lat": 13.0265, "lon": 80.0435}
+    {"id": 50, "name": "Ishita", "blood_group": "A+", "lat": 13.0265, "lon": 80.0435},
+
+    {"id": 51, "name": "Kailash","blood_group": "H", "lat": 13.1000, "lon": 80.1500},
+    {"id": 52, "name": "Deepak", "blood_group": "AB-", "lat": 13.0827, "lon": 80.2707},
+    {"id": 53, "name": "Sneha", "blood_group": "H", "lat": 12.9229, "lon": 80.1275},
+    {"id": 54, "name": "Rajesh", "blood_group": "H", "lat": 13.1500, "lon": 80.2000},
+    {"id": 55, "name": "Divya", "blood_group": "H", "lat": 13.0400, "lon": 80.2400},
+    {"id": 56, "name": "Amit", "blood_group": "AB-","lat": 13.0600, "lon": 80.2300},
+    {"id": 57, "name": "Pooja", "blood_group": "AB-", "lat": 13.0000, "lon": 80.2500},
+    {"id": 58, "name": "Naveen", "blood_group": "H", "lat": 12.9800, "lon": 80.2200},
+    {"id": 59, "name": "Swati", "blood_group": "H", "lat": 13.1200, "lon": 80.2100},
+    {"id": 60, "name": "Gaurav", "blood_group": "AB-","lat": 13.0100, "lon": 80.2800}
 ]
 
 # State management for the SOS

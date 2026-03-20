@@ -22,6 +22,12 @@
         .loader { border: 3px solid rgba(255,255,255,0.1); border-top: 3px solid var(--primary); border-radius: 50%; width: 24px; height: 24px; animation: spin 1s linear infinite; margin: 20px auto; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
         .escalation-timer { color: #ffb703; font-size: 0.7rem; font-weight: bold; margin-top: 15px; display: block; letter-spacing: 0.5px; border-top: 1px solid rgba(255, 183, 3, 0.2); padding-top: 10px; }
+
+        /* DATABASE SPECIFIC STYLING */
+        .back-btn { background: rgba(255,255,255,0.1); color: white; border: 1px solid rgba(255,255,255,0.2); padding: 8px 16px; border-radius: 8px; cursor: pointer; float: right; transition: 0.3s; }
+        .back-btn:hover { background: var(--primary); border-color: var(--primary); }
+        #donorTable tr:hover { background: rgba(255,255,255,0.02); }
+        .tag-rare { color: #f1c40f; background: rgba(241,196,15,0.1); padding: 4px 10px; border-radius: 6px; font-weight: 800; font-size: 0.75rem; }
     </style>
 </head>
 <body>
@@ -30,65 +36,144 @@
             <span class="blood-drop">🩸</span>
             <div class="logo-thread-wrap"><span class="text-red">Red</span><span class="text-thread">thread</span></div>
         </div>
-        <div class="nav-item active" onclick="window.location.href='index.html'">Dashboard</div>
+        <div class="nav-item active" id="nav-dash" onclick="showDashboard()">Dashboard</div>
         <div class="nav-item" onclick="window.location.href='map_view.html'">Donor Map</div>
         <div class="nav-item" onclick="window.location.href='storage_logs.html'">Storage Logs</div>
+        <div class="nav-item" id="nav-db" onclick="showDatabase()">Database</div>
     </div>
 
     <div class="main-content">
-        <header>
-            <h1>Emergency Response Portal <span class="sub-header">System Active</span></h1>
-            <div class="status-badge" id="system-status"><span class="pulse-dot"></span>BACKEND LINKED</div>
-        </header>
+        <div id="dashboard-view">
+            <header>
+                <h1>Emergency Response Portal <span class="sub-header">System Active</span></h1>
+                <div class="status-badge" id="system-status"><span class="pulse-dot"></span>BACKEND LINKED</div>
+            </header>
 
-        <div class="dashboard-grid">
-            <div class="left-col">
-                <section class="request-panel glass-card">
-                    <h3>New Emergency Request</h3>
-                    <div class="input-group-vertical">
-                        <input type="text" id="patientID" class="patient-input" placeholder="Emergency Case ID (e.g. Ward 4-B)">
-                        <select id="bloodGroup">
-                            <option value="O+">O Positive (O+)</option>
-                            <option value="O-">O Negative (O-)</option>
-                            <option value="A+">A Positive (A+)</option>
-                            <option value="A-">A Negative (A-)</option>
-                            <option value="B+">B Positive (B+)</option>
-                            <option value="B-">B Negative (B-)</option>
-                            <option value="AB+">AB Positive (AB+)</option>
-                            <option value="AB-">AB Negative (AB-)</option>
-                        </select>
-                        <button class="sos-btn-large" id="sos-btn" onclick="handleEmergencyActivation()">ACTIVATE SOS</button>
-                        
-                        <div id="status-terminal" style="display: none;">
-                            <div class="terminal-header">
-                                <span style="color: var(--primary); font-size: 0.7rem; font-weight: bold; letter-spacing: 1px;">SYSTEM TRANSMISSION LOG</span>
-                                <span style="color: #4ade80; font-size: 0.65rem; font-weight: bold;">● ENCRYPTED</span>
+            <div class="dashboard-grid">
+                <div class="left-col">
+                    <section class="request-panel glass-card">
+                        <h3>New Emergency Request</h3>
+                        <div class="input-group-vertical">
+                            <input type="text" id="patientID" class="patient-input" placeholder="Emergency Case ID (e.g. Ward 4-B)">
+                            <select id="bloodGroup">
+                                <option value="O+">O Positive (O+)</option>
+                                <option value="O-">O Negative (O-)</option>
+                                <option value="A+">A Positive (A+)</option>
+                                <option value="A-">A Negative (A-)</option>
+                                <option value="B+">B Positive (B+)</option>
+                                <option value="B-">B Negative (B-)</option>
+                                <option value="AB+">AB Positive (AB+)</option>
+                                <option value="AB-">AB Negative (AB-)</option>
+                                <option value="H-Type (Bombay)">H-Type (Bombay)</option>
+                            </select>
+                            <button class="sos-btn-large" id="sos-btn" onclick="handleEmergencyActivation()">ACTIVATE SOS</button>
+                            
+                            <div id="status-terminal" style="display: none;">
+                                <div class="terminal-header">
+                                    <span style="color: var(--primary); font-size: 0.7rem; font-weight: bold; letter-spacing: 1px;">SYSTEM TRANSMISSION LOG</span>
+                                    <span style="color: #4ade80; font-size: 0.65rem; font-weight: bold;">● ENCRYPTED</span>
+                                </div>
+                                <div id="log-output"></div>
                             </div>
-                            <div id="log-output"></div>
                         </div>
-                    </div>
-                </section>
-            </div>
-
-            <div class="right-col">
-                <div class="stats-grid">
-                    <div class="stat-card"><span>Live Matches</span><h2 id="donorCount">0</h2></div>
-                    <div class="stat-card"><span>Avg. Response</span><h2>4.2 min</h2></div>
-                    <div class="stat-card"><span>Storage Temp</span><h2 id="tempDisplay">4.0°C</h2></div>
+                    </section>
                 </div>
 
-                <section class="results-container glass-card">
-                    <h3 class="section-label">Live Broadcast Results</h3>
-                    <div id="results" class="results-list">
-                        <p class="placeholder-text">Awaiting emergency trigger...</p>
+                <div class="right-col">
+                    <div class="stats-grid">
+                        <div class="stat-card"><span>Live Matches</span><h2 id="donorCount">0</h2></div>
+                        <div class="stat-card"><span>Avg. Response</span><h2>4.2 min</h2></div>
+                        <div class="stat-card"><span>Storage Temp</span><h2 id="tempDisplay">4.0°C</h2></div>
                     </div>
-                </section>
+
+                    <section class="results-container glass-card">
+                        <h3 class="section-label">Live Broadcast Results</h3>
+                        <div id="results" class="results-list">
+                            <p class="placeholder-text">Awaiting emergency trigger...</p>
+                        </div>
+                    </section>
+                </div>
             </div>
+        </div>
+
+        <div id="database-view" style="display: none; animation: fadeIn 0.4s ease;">
+            <header>
+                <button class="back-btn" onclick="showDashboard()">← Back</button>
+                <h1>Rare Donor Registry <span class="sub-header">Verified Federated Network</span></h1>
+            </header>
+
+            <section class="glass-card" style="margin-top: 20px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px;">
+                    <h3 style="margin: 0;">Global Network Registry</h3>
+                    <input type="text" id="dbSearch" onkeyup="filterDatabase()" placeholder="Search Name or Blood Group..." 
+                           style="width: 280px; background: rgba(255,255,255,0.05); border: 1px solid var(--primary); color: white; padding: 10px 15px; border-radius: 10px; outline: none;">
+                </div>
+
+                <div style="max-height: 550px; overflow-y: auto; border-radius: 12px;">
+                    <table id="donorTable" style="width: 100%; border-collapse: collapse; font-size: 0.85rem;">
+                        <thead style="position: sticky; top: 0; background: #1e293b; z-index: 10;">
+                            <tr>
+                                <th style="text-align: left; padding: 15px; color: #94a3b8; border-bottom: 2px solid var(--primary);">NAME</th>
+                                <th style="text-align: left; padding: 15px; color: #94a3b8; border-bottom: 2px solid var(--primary);">BLOOD TYPE</th>
+                                <th style="text-align: left; padding: 15px; color: #94a3b8; border-bottom: 2px solid var(--primary);">SOURCE</th>
+                                <th style="text-align: left; padding: 15px; color: #94a3b8; border-bottom: 2px solid var(--primary);">STATUS</th>
+                            </tr>
+                        </thead>
+                        <tbody id="db-body">
+                            </tbody>
+                    </table>
+                </div>
+            </section>
         </div>
     </div>
 
     <script>
-        // Global storage for filtered donor data from backend
+        // DATA LIST EMBEDDED DIRECTLY
+        const GlobalRareNetwork = [
+            { name: "Arun Kumar", blood_group: "H-Type (Bombay)", source_hospital: "Apollo Hospital", status: "Eligible" },
+            { name: "Priya Sharma", blood_group: "AB-", source_hospital: "MIOT International", status: "Eligible" },
+            { name: "Suresh Raina", blood_group: "H-Type (Bombay)", source_hospital: "Global Health City", status: "On-Call" },
+            { name: "Vikram Seth", blood_group: "Rh-Null", source_hospital: "MMC Chennai", status: "Eligible" },
+            { name: "Karthik Raja", blood_group: "AB-", source_hospital: "Saveetha Medical", status: "Eligible" },
+            { name: "Meera Nair", blood_group: "H-Type (Bombay)", source_hospital: "Fortis Malar", status: "Eligible" },
+            { name: "Deepika R", blood_group: "AB-", source_hospital: "SRMC Porur", status: "Eligible" }
+        ];
+
+        // NAVIGATION FUNCTIONS
+        function showDatabase() {
+            document.getElementById('dashboard-view').style.display = 'none';
+            document.getElementById('database-view').style.display = 'block';
+            document.getElementById('nav-dash').classList.remove('active');
+            document.getElementById('nav-db').classList.add('active');
+
+            const tbody = document.getElementById('db-body');
+            tbody.innerHTML = GlobalRareNetwork.map(donor => `
+                <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+                    <td style="padding: 15px; font-weight: 600; color: white;">${donor.name}</td>
+                    <td style="padding: 15px;"><span class="tag-rare">${donor.blood_group}</span></td>
+                    <td style="padding: 15px; color: #94a3b8;">${donor.source_hospital}</td>
+                    <td style="padding: 15px; color: ${donor.status === 'Eligible' ? '#4ade80' : '#f1c40f'}; font-weight: bold; font-size: 0.7rem;">● ${donor.status.toUpperCase()}</td>
+                </tr>
+            `).join('');
+        }
+
+        function showDashboard() {
+            document.getElementById('database-view').style.display = 'none';
+            document.getElementById('dashboard-view').style.display = 'block';
+            document.getElementById('nav-db').classList.remove('active');
+            document.getElementById('nav-dash').classList.add('active');
+        }
+
+        function filterDatabase() {
+            let input = document.getElementById("dbSearch").value.toUpperCase();
+            let rows = document.getElementById("db-body").getElementsByTagName("tr");
+            for (let i = 0; i < rows.length; i++) {
+                let text = rows[i].textContent || rows[i].innerText;
+                rows[i].style.display = text.toUpperCase().indexOf(input) > -1 ? "" : "none";
+            }
+        }
+
+        // SOS LOGIC (Existing)
         let phase1Donors = [];
         let phase2Donors = [];
         let phase3Donors = [];
@@ -119,9 +204,6 @@
                 });
 
                 const data = await response.json();
-                
-                // STRICT DISTANCE FILTERING (Fixing the Rahul 13.99km issue)
-                // We combine all donors returned and re-sort them into strict buckets
                 const allDonors = [...data.immediate_donors, ...data.escalation_donors];
                 phase1Donors = allDonors.filter(d => d.distance_km <= 5);
                 phase2Donors = allDonors.filter(d => d.distance_km > 5 && d.distance_km <= 10);
@@ -129,17 +211,16 @@
 
                 log(`ESTABLISHING AES-256 SECURE LINK...`, "#4ade80");
                 
-                // Phase 1 (0-5km)
                 setTimeout(() => {
                     document.getElementById('donorCount').innerText = phase1Donors.length;
                     log(`PHASE 1: Calling ${phase1Donors.length} donors within 5km radius.`, "#4ade80");
                     renderDonors(phase1Donors, `Phase 1: Immediate Matches (5km)`, "CALL + ALERT SENT");
-                    
                     startEscalationSequence(30, log, 2);
                 }, 1500);
 
             } catch (err) {
                 log("BACKEND OFFLINE", "#ff4d6d");
+                btn.innerText = "ACTIVATE SOS";
                 btn.disabled = false;
             }
         }
@@ -162,46 +243,35 @@
                 if (timeLeft < 0) {
                     clearInterval(interval);
                     timerContainer.innerHTML = "";
-
                     if (phase === 2) {
-                        // Phase 2: 5-10km (Calls)
-                        logFn(`PHASE 2: Escalating to 10km radius. Calling ${phase2Donors.length} donors.`, "#ffb703");
+                        logFn(`PHASE 2: Escalating to 10km radius.`, "#ffb703");
                         renderDonors(phase2Donors, `Phase 2: Escalated Matches (10km)`, "CALL + ALERT SENT", true);
                         updateCount(phase2Donors.length);
-                        
                         if (phase3Donors.length > 0) startEscalationSequence(30, logFn, 3);
                     } else {
-                        // Phase 3: 10-25km (SMS Only)
-                        logFn(`PHASE 3: Radius expanded to 25km. SMS dispatch to ${phase3Donors.length} donors.`, "#38bdf8");
-                        renderDonors(phase3Donors, `Phase 3: Extended Reach (25km)`, "SMS/WHATSAPP DISPATCHED", true);
+                        logFn(`PHASE 3: SMS dispatch to 25km.`, "#38bdf8");
+                        renderDonors(phase3Donors, `Phase 3: Extended Reach (25km)`, "SMS DISPATCHED", true);
                         updateCount(phase3Donors.length);
-                        timerContainer.remove();
                     }
                 }
             }, 1000);
         }
 
-        function updateCount(newNum) {
-            const currentCount = parseInt(document.getElementById('donorCount').innerText);
-            document.getElementById('donorCount').innerText = currentCount + newNum;
+        function updateCount(num) {
+            let cur = parseInt(document.getElementById('donorCount').innerText);
+            document.getElementById('donorCount').innerText = cur + num;
         }
 
         function renderDonors(list, title, statusText, append = false) {
             const resultsDiv = document.getElementById('results');
             let html = `<h4 style="color:var(--primary); font-size:0.7rem; margin:20px 0 10px 0; text-transform:uppercase;">${title}</h4>`;
-            
-            if (list.length === 0) {
-                html += `<p style="font-size:0.75rem; color:#64748b; margin-left:10px;">No donors found in this range.</p>`;
-            } else {
-                list.forEach(d => {
-                    html += `
-                    <div class="donor-card">
-                        <div><strong style="color:white; font-size:0.9rem;">${d.name}</strong><br><span style="font-size:0.75rem; color:#94a3b8;">📍 ${d.distance_km} km</span></div>
-                        <div style="text-align:right;"><span style="display:block; color:${statusText.includes('SMS/WHATSAPP') ? '#38bdf8' : '#4ade80'}; font-weight:bold; font-size:0.6rem;">${statusText}</span></div>
-                    </div>`;
-                });
-            }
-
+            list.forEach(d => {
+                html += `
+                <div class="donor-card">
+                    <div><strong style="color:white; font-size:0.9rem;">${d.name}</strong><br><span style="font-size:0.75rem; color:#94a3b8;">📍 ${d.distance_km} km</span></div>
+                    <div style="text-align:right;"><span style="color:#4ade80; font-weight:bold; font-size:0.6rem;">${statusText}</span></div>
+                </div>`;
+            });
             if (append) resultsDiv.innerHTML += html;
             else resultsDiv.innerHTML = html;
         }
